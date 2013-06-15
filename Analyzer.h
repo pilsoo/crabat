@@ -229,6 +229,7 @@ public :
    //virtual Short_t **SetTpcMap();
    virtual void SetRF();
    virtual UShort_t SetPpacSepZ();
+   virtual bool CheckGate(int RI=-1, Double_t PPACaX=-999., Double_t PPACbX=-999., Double_t RF0=-999., Double_t RF1=-999.);
    virtual Bool_t WindowCut(Double_t x=99., Double_t y=99.);
    //virtual Bool_t WindowCut(Double_t &x, Double_t &y);
    virtual void     Loop(Int_t run=0,

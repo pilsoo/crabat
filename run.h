@@ -43,6 +43,7 @@
 #include <TH2.h>
 #include <TH3.h>
 
+#include "exp.h"
 
 /**
 @brief Prints the invocation usage to standard error.
@@ -145,22 +146,16 @@ TH2F *hTargetXY_30s ;
 TH2F *hTargetXYcut_30s ;
 TH2F *hTargetXY_29p ;
 TH2F *hPpac0XRF0 ;
-TH2F *hPpac0XRF0_17f ;
-TH2F *hPpac0XRF1_17f ;
-TH2F *hPpac0XRF0_29p ;
-TH2F *hPpac0XRF1_29p ;
-TH2F *hPpac0XRF0_30s ;
+TH2F *hPpac0XRF0_RI[RInum] ;
+TH2F *hPpac0XRF1_RI[RInum] ;
+TH2F *hPpac1XRF0_RI[RInum] ;
+TH2F *hPpac1XRF1_RI[RInum] ;
 TH2F *hPpac0XRF0_30s_ds ;
-TH2F *hPpac0XRF1_30s ;
 TH2F *hPpac0XRF0ds ;
 TH2F *hPpac0XRF1ds ;
 TH2F *hPpac0XRF0ssd ;
 TH2F *hPpac0XRF1ssd ;
 TH2F *hPpac1XRF0 ;
-TH2F *hPpac1XRF0_29p ;
-TH2F *hPpac1XRF1_29p ;
-TH2F *hPpac1XRF0_30s ;
-TH2F *hPpac1XRF1_30s ;
 TH2F *hPpac1XRF0ds ;
 TH2F *hPpac1XRF1ds ;
 TH2F *hPpac1XRF0ssd ;
@@ -180,24 +175,10 @@ TH2F *hTpc_dE_ch[144];
 
 // low gain pads
 
-TH1F *hBraggB_30s_ssd_ch[48];
-TH1F *hBraggB_30s_ds_ch[48];
-TH1F *hBraggB_29p_ssd_ch[48];
-TH1F *hBraggB_29p_ds_ch[48];
-TH1F *hBraggB_17f_ssd_ch[48];
-TH1F *hBraggB_17f_ds_ch[48];
-TH1F *hBraggB_ds_ch[48];
-TH1F *hBraggB_ssd_ch[48];
-
 TH2F *hBraggB_30s_jch[15]; 
-TH2F *hBraggB_rp ;
-TH2F *hBraggB_30s ;
-TH2F *hBraggB_30s_ssd ;
-TH2F *hBraggB_30s_ds ;
-TH2F *hBraggB_29p ;
-TH2F *hBraggB_29p_ssd ;
-TH2F *hBraggB_29p_ds ;
-TH2F *hBraggB_17f ;
+TH2F *hBraggB_RI[RInum] ;
+TH2F *hBraggB_ssd_RI[RInum] ;
+TH2F *hBraggB_ds_RI[RInum] ;
 TH2F *hBraggB; 
 
 // pad multiplicity
@@ -260,7 +241,7 @@ Here we define the histograms and set all relevant histogramming options.
 */
 void HistInit(){ // histogram initalization
    
-  char name[100];
+  char name[100],hname[100],htitle[100];
   int xbin,ybin;
   double xmin,xmax,ymin,ymax;
   if (flag_ssd){ 
@@ -473,7 +454,7 @@ void HistInit(){ // histogram initalization
       hTargetXY_29p->GetXaxis()->CenterTitle(true);
       hTargetXY_29p->GetYaxis()->SetTitle("Y Position (mm)");
       hTargetXY_29p->GetYaxis()->CenterTitle(true);
-      
+       
       hPpac0XRF0 = new TH2F("hPpac0XRF0","PPACa X vs. RF0",320,-40.,40.,300,0.,60.);
       hPpac0XRF0->SetOption("COL");
       hPpac0XRF0->GetXaxis()->SetTitle("X Position (mm)");
@@ -494,41 +475,46 @@ void HistInit(){ // histogram initalization
       hPpac1XRF0->GetXaxis()->CenterTitle(true);
       hPpac1XRF0->GetYaxis()->SetTitle("RF (ns)");
       hPpac1XRF0->GetYaxis()->CenterTitle(true);
+     //goatface 
+      for (UShort_t i=0;i<RInum;i++){
+        sprintf(hname,"hPpac0XRF0_%s",RIname[i]);
+        sprintf(htitle,"PPACa X vs. RF0 %s",RIname[i]);
+	hPpac0XRF0_RI[i] = new TH2F(hname,htitle,160,-40.,40.,300,0.,60.);
+        hPpac0XRF0_RI[i]->SetOption("COL");
+        hPpac0XRF0_RI[i]->GetXaxis()->SetTitle("X Position (mm)");
+        hPpac0XRF0_RI[i]->GetXaxis()->CenterTitle(true);
+        hPpac0XRF0_RI[i]->GetYaxis()->SetTitle("RF (ns)");
+        hPpac0XRF0_RI[i]->GetYaxis()->CenterTitle(true);
       
-      hPpac0XRF0_29p = new TH2F("hPpac0XRF0_29p","PPACa X vs. RF0 29P",160,-40.,40.,300,0.,60.);
-      hPpac0XRF0_29p->SetOption("COL");
-      hPpac0XRF0_29p->GetXaxis()->SetTitle("X Position (mm)");
-      hPpac0XRF0_29p->GetXaxis()->CenterTitle(true);
-      hPpac0XRF0_29p->GetYaxis()->SetTitle("RF (ns)");
-      hPpac0XRF0_29p->GetYaxis()->CenterTitle(true);
+        sprintf(hname,"hPpac0XRF1_%s",RIname[i]);
+        sprintf(htitle,"PPACa X vs. RF1 %s",RIname[i]);
+	hPpac0XRF1_RI[i] = new TH2F(hname,htitle,160,-40.,40.,300,0.,60.);
+        hPpac0XRF1_RI[i]->SetOption("COL");
+        hPpac0XRF1_RI[i]->GetXaxis()->SetTitle("X Position (mm)");
+        hPpac0XRF1_RI[i]->GetXaxis()->CenterTitle(true);
+        hPpac0XRF1_RI[i]->GetYaxis()->SetTitle("RF (ns)");
+        hPpac0XRF1_RI[i]->GetYaxis()->CenterTitle(true);
       
-      hPpac0XRF1_29p = new TH2F("hPpac0XRF1_29p","PPACa X vs. RF1 29P",160,-40.,40.,300,0.,60.);
-      hPpac0XRF1_29p->SetOption("COL");
-      hPpac0XRF1_29p->GetXaxis()->SetTitle("X Position (mm)");
-      hPpac0XRF1_29p->GetXaxis()->CenterTitle(true);
-      hPpac0XRF1_29p->GetYaxis()->SetTitle("RF (ns)");
-      hPpac0XRF1_29p->GetYaxis()->CenterTitle(true);
+        sprintf(hname,"hPpac1XRF0_%s",RIname[i]);
+        sprintf(htitle,"PPACb X vs. RF0 %s",RIname[i]);
+	hPpac1XRF0_RI[i] = new TH2F(hname,htitle,160,-40.,40.,300,0.,60.);
+        hPpac1XRF0_RI[i]->SetOption("COL");
+        hPpac1XRF0_RI[i]->GetXaxis()->SetTitle("X Position (mm)");
+        hPpac1XRF0_RI[i]->GetXaxis()->CenterTitle(true);
+        hPpac1XRF0_RI[i]->GetYaxis()->SetTitle("RF (ns)");
+        hPpac1XRF0_RI[i]->GetYaxis()->CenterTitle(true);
       
-      hPpac0XRF0_17f = new TH2F("hPpac0XRF0_17f","PPACa X vs. RF0 17F",160,-40.,40.,300,0.,60.);
-      hPpac0XRF0_17f->SetOption("COL");
-      hPpac0XRF0_17f->GetXaxis()->SetTitle("X Position (mm)");
-      hPpac0XRF0_17f->GetXaxis()->CenterTitle(true);
-      hPpac0XRF0_17f->GetYaxis()->SetTitle("RF (ns)");
-      hPpac0XRF0_17f->GetYaxis()->CenterTitle(true);
+        sprintf(hname,"hPpac1XRF1_%s",RIname[i]);
+        sprintf(htitle,"PPACb X vs. RF1 %s",RIname[i]);
+	hPpac1XRF1_RI[i] = new TH2F(hname,htitle,160,-40.,40.,300,0.,60.);
+        hPpac1XRF1_RI[i]->SetOption("COL");
+        hPpac1XRF1_RI[i]->GetXaxis()->SetTitle("X Position (mm)");
+        hPpac1XRF1_RI[i]->GetXaxis()->CenterTitle(true);
+        hPpac1XRF1_RI[i]->GetYaxis()->SetTitle("RF (ns)");
+        hPpac1XRF1_RI[i]->GetYaxis()->CenterTitle(true);
       
-      hPpac0XRF1_17f = new TH2F("hPpac0XRF1_17f","PPACa X vs. RF1 17F",160,-40.,40.,300,0.,60.);
-      hPpac0XRF1_17f->SetOption("COL");
-      hPpac0XRF1_17f->GetXaxis()->SetTitle("X Position (mm)");
-      hPpac0XRF1_17f->GetXaxis()->CenterTitle(true);
-      hPpac0XRF1_17f->GetYaxis()->SetTitle("RF (ns)");
-      hPpac0XRF1_17f->GetYaxis()->CenterTitle(true);
-      
-      hPpac0XRF0_30s = new TH2F("hPpac0XRF0_30s","PPACa X vs. RF0 30S",160,-40.,40.,300,0.,60.);
-      hPpac0XRF0_30s->SetOption("COL");
-      hPpac0XRF0_30s->GetXaxis()->SetTitle("X Position (mm)");
-      hPpac0XRF0_30s->GetXaxis()->CenterTitle(true);
-      hPpac0XRF0_30s->GetYaxis()->SetTitle("RF (ns)");
-      hPpac0XRF0_30s->GetYaxis()->CenterTitle(true);
+      }
+
       
       hPpac0XRF0_30s_ds = new TH2F("hPpac0XRF0_30s_ds","PPACa X vs. RF0 30S DS",160,-40.,40.,300,0.,60.);
       hPpac0XRF0_30s_ds->SetOption("COL");
@@ -536,41 +522,6 @@ void HistInit(){ // histogram initalization
       hPpac0XRF0_30s_ds->GetXaxis()->CenterTitle(true);
       hPpac0XRF0_30s_ds->GetYaxis()->SetTitle("RF (ns)");
       hPpac0XRF0_30s_ds->GetYaxis()->CenterTitle(true);
-      
-      hPpac0XRF1_30s = new TH2F("hPpac0XRF1_30s","PPACa X vs. RF1 30S",160,-40.,40.,300,0.,60.);
-      hPpac0XRF1_30s->SetOption("COL");
-      hPpac0XRF1_30s->GetXaxis()->SetTitle("X Position (mm)");
-      hPpac0XRF1_30s->GetXaxis()->CenterTitle(true);
-      hPpac0XRF1_30s->GetYaxis()->SetTitle("RF (ns)");
-      hPpac0XRF1_30s->GetYaxis()->CenterTitle(true);
-      
-      hPpac1XRF0_29p = new TH2F("hPpac1XRF0_29p","PPACb X vs. RF0 29P",160,-40.,40.,300,0.,60.);
-      hPpac1XRF0_29p->SetOption("COL");
-      hPpac1XRF0_29p->GetXaxis()->SetTitle("X Position (mm)");
-      hPpac1XRF0_29p->GetXaxis()->CenterTitle(true);
-      hPpac1XRF0_29p->GetYaxis()->SetTitle("RF (ns)");
-      hPpac1XRF0_29p->GetYaxis()->CenterTitle(true);
-      
-      hPpac1XRF1_29p = new TH2F("hPpac1XRF1_29p","PPACb X vs. RF1 29P",160,-40.,40.,300,0.,60.);
-      hPpac1XRF1_29p->SetOption("COL");
-      hPpac1XRF1_29p->GetXaxis()->SetTitle("X Position (mm)");
-      hPpac1XRF1_29p->GetXaxis()->CenterTitle(true);
-      hPpac1XRF1_29p->GetYaxis()->SetTitle("RF (ns)");
-      hPpac1XRF1_29p->GetYaxis()->CenterTitle(true);
-      
-      hPpac1XRF0_30s = new TH2F("hPpac1XRF0_30s","PPACb X vs. RF0 30S",160,-40.,40.,300,0.,60.);
-      hPpac1XRF0_30s->SetOption("COL");
-      hPpac1XRF0_30s->GetXaxis()->SetTitle("X Position (mm)");
-      hPpac1XRF0_30s->GetXaxis()->CenterTitle(true);
-      hPpac1XRF0_30s->GetYaxis()->SetTitle("RF (ns)");
-      hPpac1XRF0_30s->GetYaxis()->CenterTitle(true);
-      
-      hPpac1XRF1_30s = new TH2F("hPpac1XRF1_30s","PPACb X vs. RF1 30S",160,-40.,40.,300,0.,60.);
-      hPpac1XRF1_30s->SetOption("COL");
-      hPpac1XRF1_30s->GetXaxis()->SetTitle("X Position (mm)");
-      hPpac1XRF1_30s->GetXaxis()->CenterTitle(true);
-      hPpac1XRF1_30s->GetYaxis()->SetTitle("RF (ns)");
-      hPpac1XRF1_30s->GetYaxis()->CenterTitle(true);
       
       hPpac0XRF1cut = new TH2F("hPpac0XRF1cut","PPACa X vs. RF1",160,-40.,40.,300,0.,60.);
       hPpac0XRF1cut->SetOption("COL");
@@ -852,19 +803,38 @@ void HistInit(){ // histogram initalization
     hMultL_30s_3a->GetXaxis()->SetTitle("No. Pads Hit");
     hMultL_30s_3a->GetXaxis()->CenterTitle(true);
 
-    //xbin=48;xmin=-0.5;xmax=47.5;ybin=200;ymin=0.;ymax=2000.;
-    xbin=48;xmin=-0.5;xmax=47.5;ybin=3000;ymin=0.;ymax=30000.;
-    hBraggB_30s = new TH2F("hBraggB_30s","Beam Bragg Curve Gated on ^{30}S",xbin,xmin,xmax,ybin,ymin,ymax);
-    hBraggB_30s->SetOption("COLZ");
-    hBraggB_30s->GetXaxis()->SetTitle("Pad No.");
-    hBraggB_30s->GetXaxis()->CenterTitle(true);
-    hBraggB_30s->GetYaxis()->SetTitle("#DeltaE (arb.)");
-    hBraggB_30s->GetYaxis()->CenterTitle(true);
     
-    hBraggB_29p = new TH2F("hBraggB_29p","hBraggB_29p",xbin,xmin,xmax,ybin,ymin,ymax);
-    hBraggB_29p->SetOption("COLZ");
-    hBraggB_17f = new TH2F("hBraggB_17f","hBraggB_17f",xbin,xmin,xmax,ybin,ymin,ymax);
-    hBraggB_17f->SetOption("COLZ");
+    //xbin=48;xmin=-0.5;xmax=47.5;ybin=200;ymin=0.;ymax=2000.; // Peak FADC
+    xbin=48;xmin=-0.5;xmax=47.5;ybin=3000;ymin=0.;ymax=30000.; // Integrated FADC
+    for (int i=0; i<RInum; i++){
+
+      sprintf(hname,"hBraggB_%s",RIname[i]);
+      sprintf(htitle,"Beam Bragg Curve Gated on %s",RIname[i]);
+      hBraggB_RI[i] = new TH2F(hname,htitle,xbin,xmin,xmax,ybin,ymin,ymax);
+      hBraggB_RI[i]->SetOption("COLZ");
+      hBraggB_RI[i]->GetXaxis()->SetTitle("Pad No.");
+      hBraggB_RI[i]->GetXaxis()->CenterTitle(true);
+      hBraggB_RI[i]->GetYaxis()->SetTitle("#DeltaE (arb.)");
+      hBraggB_RI[i]->GetYaxis()->CenterTitle(true);
+      
+      sprintf(hname,"hBraggB_ds_%s",RIname[i]);
+      sprintf(htitle,"Beam Bragg Curve Gated on %s DS",RIname[i]);
+      hBraggB_ds_RI[i] = new TH2F(hname,htitle,xbin,xmin,xmax,ybin,ymin,ymax);
+      hBraggB_ds_RI[i]->SetOption("COLZ");
+      hBraggB_ds_RI[i]->GetXaxis()->SetTitle("Pad No.");
+      hBraggB_ds_RI[i]->GetXaxis()->CenterTitle(true);
+      hBraggB_ds_RI[i]->GetYaxis()->SetTitle("#DeltaE (arb.)");
+      hBraggB_ds_RI[i]->GetYaxis()->CenterTitle(true);
+      
+      sprintf(hname,"hBraggB_ssd_%s",RIname[i]);
+      sprintf(htitle,"Beam Bragg Curve Gated on %s SSD-OR",RIname[i]);
+      hBraggB_ssd_RI[i] = new TH2F(hname,htitle,xbin,xmin,xmax,ybin,ymin,ymax);
+      hBraggB_ssd_RI[i]->SetOption("COLZ");
+      hBraggB_ssd_RI[i]->GetXaxis()->SetTitle("Pad No.");
+      hBraggB_ssd_RI[i]->GetXaxis()->CenterTitle(true);
+      hBraggB_ssd_RI[i]->GetYaxis()->SetTitle("#DeltaE (arb.)");
+      hBraggB_ssd_RI[i]->GetYaxis()->CenterTitle(true);
+    }
 
     hPadYBgeo = new TH2F("hPadYBgeo","Beam Y",48,-0.5,47.5,80,-20.,20.);
     hPadYBgeo->SetOption("COLZ");
@@ -938,70 +908,7 @@ void HistInit(){ // histogram initalization
     hBraggB_3D_ssd = new TH3F("hBraggB_3D_ssd","hBraggB_3D_ssd",48,-0.5,47.5,4,-0.5,3.5,400,0.,2000.);
     hBraggB_3D_ssd->SetOption("GLCOL");
       
-    hBraggB_30s_ds = new TH2F("hBraggB_30s_ds","Beam Bragg Curve Gated on ^{30}S DS",xbin,xmin,xmax,ybin,ymin,ymax);
-    hBraggB_30s_ds->SetOption("COLZ");
-    hBraggB_30s_ds->GetXaxis()->SetTitle("Pad No.");
-    hBraggB_30s_ds->GetXaxis()->CenterTitle(true);
-    hBraggB_30s_ds->GetYaxis()->SetTitle("#DeltaE (arb.)");
-    hBraggB_30s_ds->GetYaxis()->CenterTitle(true);
     
-    hBraggB_30s_ssd = new TH2F("hBraggB_30s_ssd","Beam Bragg Curve Gated on ^{30}S SSD-OR",xbin,xmin,xmax,ybin,ymin,ymax);
-    hBraggB_30s_ssd->SetOption("COLZ");
-    hBraggB_30s_ssd->GetXaxis()->SetTitle("Pad No.");
-    hBraggB_30s_ssd->GetXaxis()->CenterTitle(true);
-    hBraggB_30s_ssd->GetYaxis()->SetTitle("#DeltaE (arb.)");
-    hBraggB_30s_ssd->GetYaxis()->CenterTitle(true);
-    
-    hBraggB_29p_ds = new TH2F("hBraggB_29p_ds","Beam Bragg Curve Gated on ^{29}P DS",xbin,xmin,xmax,ybin,ymin,ymax);
-    hBraggB_29p_ds->SetOption("COLZ");
-    hBraggB_29p_ds->GetXaxis()->SetTitle("Pad No.");
-    hBraggB_29p_ds->GetXaxis()->CenterTitle(true);
-    hBraggB_29p_ds->GetYaxis()->SetTitle("#DeltaE (arb.)");
-    hBraggB_29p_ds->GetYaxis()->CenterTitle(true);
-    
-    hBraggB_29p_ssd = new TH2F("hBraggB_29p_ssd","Beam Bragg Curve Gated on ^{29}P SSD-OR",xbin,xmin,xmax,ybin,ymin,ymax);
-    hBraggB_29p_ssd->SetOption("COLZ");
-    hBraggB_29p_ssd->GetXaxis()->SetTitle("Pad No.");
-    hBraggB_29p_ssd->GetXaxis()->CenterTitle(true);
-    hBraggB_29p_ssd->GetYaxis()->SetTitle("#DeltaE (arb.)");
-    hBraggB_29p_ssd->GetYaxis()->CenterTitle(true);
-    
-    hBraggB_rp = new TH2F("hBraggB_rp","Beam Scattering Location for ^{30}S",xbin,xmin,xmax,ybin,ymin,ymax);
-    hBraggB_rp->SetOption("COLZ");
-    hBraggB_rp->GetXaxis()->SetTitle("Pad No.");
-    hBraggB_rp->GetXaxis()->CenterTitle(true);
-    hBraggB_rp->GetYaxis()->SetTitle("(#DeltaE_{i}-#DeltaE_{i-1})/Pad i");
-    hBraggB_rp->GetYaxis()->CenterTitle(true);
-      
-    for (UShort_t i=0;i<48;i++) { // Beam Bragg pads
-      sprintf(name,"hBraggB_ds_ch%d",i);
-      hBraggB_ds_ch[i] = new TH1F(name,name,2000,0,2000);
-      hBraggB_ds_ch[i]->GetXaxis()->SetTitle("#DeltaE (arb.)");
-      hBraggB_ds_ch[i]->GetXaxis()->CenterTitle(true);
-      hBraggB_ds_ch[i]->GetYaxis()->SetTitle("Counts");
-      hBraggB_ds_ch[i]->GetYaxis()->CenterTitle(true);
-      sprintf(name,"hBraggB_ssd_ch%d",i);
-      hBraggB_ssd_ch[i] = new TH1F(name,name,2000,0,2000);
-      hBraggB_ssd_ch[i]->GetXaxis()->SetTitle("#DeltaE (arb.)");
-      hBraggB_ssd_ch[i]->GetXaxis()->CenterTitle(true);
-      hBraggB_ssd_ch[i]->GetYaxis()->SetTitle("Counts");
-      hBraggB_ssd_ch[i]->GetYaxis()->CenterTitle(true);
-    }
-    for (UShort_t i=0;i<48;i++) {
-      sprintf(name,"hBraggB_30s_ssd_ch%d",i);
-      hBraggB_30s_ssd_ch[i] = new TH1F(name,name,ybin,ymin,ymax);
-      sprintf(name,"hBraggB_30s_ds_ch%d",i);
-      hBraggB_30s_ds_ch[i] = new TH1F(name,name,ybin,ymin,ymax);
-      sprintf(name,"hBraggB_29p_ssd_ch%d",i);
-      hBraggB_29p_ssd_ch[i] = new TH1F(name,name,ybin,ymin,ymax);
-      sprintf(name,"hBraggB_29p_ds_ch%d",i);
-      hBraggB_29p_ds_ch[i] = new TH1F(name,name,ybin,ymin,ymax);
-      sprintf(name,"hBraggB_17f_ssd_ch%d",i);
-      hBraggB_17f_ssd_ch[i] = new TH1F(name,name,ybin,ymin,ymax);
-      sprintf(name,"hBraggB_17f_ds_ch%d",i);
-      hBraggB_17f_ds_ch[i] = new TH1F(name,name,ybin,ymin,ymax);
-    }
-
   } // end if: flag_tpc & flag_ppac & flag_detail
 
 } // close HistInit
@@ -1094,17 +1001,13 @@ void HistWrite() {
        hPpac0XRF1cut->Write(); 
        hPpac1XRF1cut->Write(); 
        hPpac1XRF1->Write();
-       hPpac0XRF0_17f->Write(); 
-       hPpac0XRF1_17f->Write(); 
-       hPpac0XRF0_29p->Write(); 
-       hPpac0XRF1_29p->Write(); 
-       hPpac0XRF0_30s->Write(); 
+       for (int i=0;i<RInum;i++) {
+         hPpac0XRF0_RI[i]->Write();
+         hPpac0XRF1_RI[i]->Write();
+         hPpac1XRF0_RI[i]->Write();
+         hPpac1XRF1_RI[i]->Write();
+       }
        hPpac0XRF0_30s_ds->Write(); 
-       hPpac0XRF1_30s->Write(); 
-       hPpac1XRF0_29p->Write(); 
-       hPpac1XRF1_29p->Write(); 
-       hPpac1XRF0_30s->Write(); 
-       hPpac1XRF1_30s->Write(); 
        hPpac0XRF0ds->Write(); 
        hPpac0XRF1ds->Write(); 
        hPpac0XRF0ssd->Write(); 
@@ -1187,14 +1090,6 @@ void HistWrite() {
         hPadB_3D->Write();
         for (UShort_t i=0;i<144;i++) {
            hTrough[i]->Write();
-           if (i<48){
-             hBraggB_30s_ssd_ch[i]->Write();
-             hBraggB_30s_ds_ch[i]->Write();
-             hBraggB_29p_ssd_ch[i]->Write();
-             hBraggB_29p_ds_ch[i]->Write();
-             hBraggB_17f_ssd_ch[i]->Write();
-             hBraggB_17f_ds_ch[i]->Write();
-           }
         }
       } // end if: flag_ppac
     } // end if: flag_detail
@@ -1206,31 +1101,23 @@ void HistWrite() {
     hPadYBgeo->Write();
     hPadXBgeo->Write();
     hPadXBgeo_30s->Write();
-    hPadXBgeo_29p->Write();
     hPadYB_30s->Write();
-    hBraggB_30s->Write();
+    for(int i=0;i<RInum;i++){
+      hBraggB_RI[i]->Write();
+      hBraggB_ds_RI[i]->Write();
+      hBraggB_ssd_RI[i]->Write();
+    }
     hMultB->Write();
     hMultB_30s->Write();
     hMultC_30s_1a->Write();
     hMultC_30s_2a->Write();
     hMultL_30s_3a->Write();
     //hBraggB_30s2->Write();
-    hBraggB_29p->Write();
-    hBraggB_17f->Write();
     for (UShort_t i=0;i<15;i++) hBraggB_30s_jch[i]->Write();
     hBraggB_3D->Write();
 
-    hBraggB_30s_ds->Write();
-    hBraggB_30s_ssd->Write();
-    hBraggB_29p_ds->Write();
-    hBraggB_29p_ssd->Write();
-    hBraggB_rp->Write();
     hBraggB_3D_ds->Write();
     hBraggB_3D_ssd->Write();
-    for (UShort_t i=0;i<48;i++){
-      hBraggB_ds_ch[i]->Write();
-      hBraggB_ssd_ch[i]->Write();
-    }
     for (UShort_t i=0;i<500;i++){
       hTpcPulse[i]->Write();
     }
@@ -1278,22 +1165,18 @@ void HistClean(){ // function to free histogram memory
   delete hTargetXY_30s ;
   delete hTargetXYcut_30s ;
   delete hPpac0XRF0 ;
-  delete hPpac0XRF0_17f ;
-  delete hPpac0XRF1_17f ;
-  delete hPpac0XRF0_29p ;
-  delete hPpac0XRF1_29p ;
-  delete hPpac0XRF0_30s ;
+  for (int i=0;i<RInum;i++) {
+    delete hPpac0XRF0_RI[i];
+    delete hPpac0XRF1_RI[i];
+    delete hPpac1XRF0_RI[i];
+    delete hPpac1XRF1_RI[i];
+  }
   delete hPpac0XRF0_30s_ds ;
-  delete hPpac0XRF1_30s ;
   delete hPpac0XRF0ds ;
   delete hPpac0XRF1ds ;
   delete hPpac0XRF0ssd ;
   delete hPpac0XRF1ssd ;
   delete hPpac1XRF0 ;
-  delete hPpac1XRF0_29p ;
-  delete hPpac1XRF1_29p ;
-  delete hPpac1XRF0_30s ;
-  delete hPpac1XRF1_30s ;
   delete hPpac1XRF0ds ;
   delete hPpac1XRF1ds ;
   delete hPpac1XRF0ssd ;
@@ -1305,15 +1188,17 @@ void HistClean(){ // function to free histogram memory
   delete hPpacProj_3D ;
   delete hGemMstpcAll ;
   delete hGemMstpcSide ;
-  delete hBraggB_30s ;
+  for(int i=0;i<RInum;i++){
+    delete hBraggB_RI[i] ;
+    delete hBraggB_ds_RI[i] ;
+    delete hBraggB_ssd_RI[i] ;
+  }
   delete hMultB;
   delete hMultB_30s;
   delete hMultC_30s_1a;
   delete hMultC_30s_2a;
   delete hMultL_30s_3a;
   delete hMultL_3a;
-  delete hBraggB_30s_ds ;
-  delete hBraggB_30s_ssd ;
   delete hPadXB ;
   delete hPadXB_30s ;
   delete hPadXB_29p ;
@@ -1326,10 +1211,6 @@ void HistClean(){ // function to free histogram memory
   delete hBraggB_3D_ds ;
   delete hBraggB_3D_ssd ;
   delete hPadB_3D;
-  delete hBraggB_29p ;
-  delete hBraggB_29p_ssd ;
-  delete hBraggB_29p_ds ;
-  delete hBraggB_17f ;
   delete hBraggB ;
   delete hBraggL ;
   delete hBraggR ;
@@ -1343,7 +1224,6 @@ void HistClean(){ // function to free histogram memory
       delete hBraggL_E[i] ;
       delete hBraggR_E[i] ;
     }
-  delete hBraggB_rp;
   for (int i=0;i<2;i++) delete hRf_ds[i]; 
   for (int i=0;i<2;i++) delete hRf_ssd[i]; 
   for (int i=0;i<2;i++) delete hRfcal[i]; 
@@ -1381,15 +1261,5 @@ void HistClean(){ // function to free histogram memory
     delete hfSample[i]; 
     delete hTrough[i];
     delete hTpc_dE_ch[i];
-  }
-  for (int i=0;i<48;i++){
-    delete hBraggB_30s_ssd_ch[i];
-    delete hBraggB_30s_ds_ch[i];
-    delete hBraggB_29p_ssd_ch[i];
-    delete hBraggB_29p_ds_ch[i];
-    delete hBraggB_17f_ssd_ch[i];
-    delete hBraggB_17f_ds_ch[i];
-    delete hBraggB_ds_ch[i];
-    delete hBraggB_ssd_ch[i];
   }
 } // close HistClean    

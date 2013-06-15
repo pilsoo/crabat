@@ -37,7 +37,7 @@ CXX=g++
 #CDEBUG=-ansi -pendantic -g # some problems? 
 COPT=-O2 -march=native -pipe -fomit-frame-pointer # run fastest
 ROOTFLAGS=$(shell root-config --cflags)
-CXXFLAGS=$(COPT) -Wall -Werror -fPIC $(ROOTFLAGS)
+CXXFLAGS=$(COPT) -Wall -Werror -fPIC -Wno-write-strings $(ROOTFLAGS)
 FC=gfortran
 FFLAGS=-lstdc++
 FSRC=$(wildcard ./enewzsub/*.f)
@@ -83,7 +83,7 @@ clean:
 	@rm -rf doc/html doc/latex
 	@find . -maxdepth 2 -name "*.o" | xargs -I{} rm {}
 
-%.o: %.cxx Analyzer.cxx Analyzer_config.cxx run.h
+%.o: %.cxx Analyzer.cxx Analyzer_config.cxx run.h exp.h
 	@echo "CXX $< $@"
 	@$(CXX) $(CXXFLAGS) $(INCLUDE) -c $< -o $@ 
 

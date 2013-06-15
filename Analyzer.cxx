@@ -60,12 +60,9 @@ gApplication->Terminate();
 #include "Calibration.cxx"
 #include "Analyzer_config.cxx"
 
-Bool_t gate_30s=false,gate_29p=false,gate_17f=false;
+bool gate_RI[RInum]={false};
 Bool_t proton_beam=false;
 Bool_t ribeam_ssd=false;
-Bool_t goodRF_30s=false, goodPpacX_30s=false;
-Bool_t goodRF_29p=false, goodPpacX_29p=false;
-Bool_t goodRF_17f=false, goodPpacX_17f=false;
 
 // for individual pulse analysis of selected cases
 int pulsetrack=0;
@@ -351,35 +348,14 @@ void Analyzer::Loop(Int_t run,
     
   }
 	  // Turn off all the gates for a new event
-          gate_30s=false;
-	  gate_29p=false;
-          gate_17f=false;
-          goodRF_30s=false;
-	  goodPpacX_30s=false;
-          goodRF_29p=false;
-	  goodPpacX_29p=false;
-          goodRF_17f=false;
-	  goodPpacX_17f=false;
+          for (int i=0;i<RInum;i++){gate_RI[i]=false;}
 	  // Set the gates for 30S/29P RI beams production run
-	  // 30S done again w/ new PPAC calib 20 Sep 2011 17:22:52 
-	  // 30S redone with RFcal 16 Jan 2012 17:32:44 
 	  if (PpacIsHit[0] && PpacIsHit[1]){
-	    if (  ((fRFcal[0]>=20) && (fRFcal[0]<=30)) || ((fRFcal[1]>=53)&&(fRFcal[1]<=60)) || (fRFcal[1]<=3) ) 
-	      {goodRF_30s=true;} //30S gate
-            if ((PpacX[0]>=-9 && PpacX[0]<=8) && (PpacX[1]>=-10 && PpacX[1]<=12)) {goodPpacX_30s=true;} //30S gate
-            if (goodRF_30s && goodPpacX_30s) {gate_30s=true;}
-            // PPAC X was redone 20 Sep 2011 17:23:07 
-	    // 29P redone with RFcal 16 Jan 2012 17:35:10 
-	    if (  ((fRFcal[0]>=6) && (fRFcal[0]<=15)) || ((fRFcal[1]>=39)&&(fRFcal[1]<=48)) ) 
-	       {goodRF_29p=true;} //29P gate
-            if ((PpacX[0]>=-4 && PpacX[0]<=9) && (PpacX[1]>=-5 && PpacX[1]<=14)) {goodPpacX_29p=true;} //29P gate
-            if (goodRF_29p && goodPpacX_29p) {gate_29p=true;}
-            // mystery ion...it should be some light ion at 0deg SSD in coincidence with 30S or 29P...check run 1027
-	    // mystery ion RFcal 16 Jan 2012 17:42:46
-	    // PPAC X redone 16 Jan 2012 17:45:43 
-	    if (((fRFcal[0]>=34) && (fRFcal[0]<=43)) || ((fRFcal[1]>=6)&&(fRFcal[1]<=15))) {goodRF_17f=true;} 
-            if ((PpacX[0]>=-9 && PpacX[0]<=8) && (PpacX[1]>=-11 && PpacX[1]<=2)) {goodPpacX_17f=true;} 
-            if (goodRF_17f && goodPpacX_17f) {gate_17f=true;}
+	    for (int i=0;i<RInum;i++) {
+	    	if (CheckGate(i,PpacX[0],PpacX[1],fRFcal[0],fRFcal[1])){ 
+		  {gate_RI[i]=true;}
+		}
+            }
           }
 /*	  
 	  // 30S energy loss case (WF and F3 slits changed slightly) 24 Jan 2012 13:29:18  
@@ -388,16 +364,16 @@ void Analyzer::Loop(Int_t run,
 	    if (  ((fRFcal[0]>=19) && (fRFcal[0]<=29)) || ((fRFcal[1]>=52)&&(fRFcal[1]<=60)) || (fRFcal[1]<=2) ) 
 	       {goodRF_30s=true;} //30S gate
             if ((PpacX[0]>=-9 && PpacX[0]<=13) && (PpacX[1]>=-7 && PpacX[1]<=17)) {goodPpacX_30s=true;} //30S gate
-            if (goodRF_30s && goodPpacX_30s) {gate_30s=true;}
-            //if (goodRF_30s && goodPpacX_30s && (WindowCut(fTargetX->Eval(452.),fTargetY->Eval(452.)))) {gate_30s=true;}
+            if (goodRF_30s && goodPpacX_30s) {gate_RI[0]=true;}
+            //if (goodRF_30s && goodPpacX_30s && (WindowCut(fTargetX->Eval(452.),fTargetY->Eval(452.)))) {gate_RI[0]=true;}
             // PPAC X was redone 20 Sep 2011 17:23:07 
 	    // 29P redone with RFcal 16 Jan 2012 17:35:10 
 	    if (  ((fRFcal[0]>=3) && (fRFcal[0]<=14)) || ((fRFcal[1]>=36)&&(fRFcal[1]<=47)) ) 
 	       {goodRF_29p=true;} //29P gate
             if ((PpacX[0]>=-5 && PpacX[0]<=14) && (PpacX[1]>=-5 && PpacX[1]<=19)) {goodPpacX_29p=true;} //29P gate
-            if (goodRF_29p && goodPpacX_29p) {gate_29p=true;}
-            //if (goodRF_29p && goodPpacX_29p && (WindowCut(fTargetX->Eval(452.),fTargetY->Eval(452.)))) {gate_29p=true;}
-	    //if (gate_30s) for (int ii=200; ii<800; ii=ii+10){
+            if (goodRF_29p && goodPpacX_29p) {gate_RI[1]=true;}
+            //if (goodRF_29p && goodPpacX_29p && (WindowCut(fTargetX->Eval(452.),fTargetY->Eval(452.)))) {gate_RI[1]=true;}
+	    //if (gate_RI[0]) for (int ii=200; ii<800; ii=ii+10){
 	   //   hPpacProj_3D->Fill(fTargetX->Eval(ii),fTargetY->Eval(ii),ii);
 	  //  }
 	  }
@@ -407,27 +383,28 @@ void Analyzer::Loop(Int_t run,
 	  // PPAC X redone 16 Jan 2012 17:45:43 
 //	  if (((fRFcal[0]>=34) && (fRFcal[0]<=43)) || ((fRFcal[1]>=6)&&(fRFcal[1]<=15))) {goodRF_17f=true;} 
 //          if ((PpacX[0]>=-9 && PpacX[0]<=8) && (PpacX[1]>=-11 && PpacX[1]<=2)) {goodPpacX_17f=true;} 
-//          if (goodRF_17f && goodPpacX_17f) {gate_17f=true;}
+//          if (goodRF_17f && goodPpacX_17f) {gate_RI[2]=true;}
           
-          if (gate_30s) {
+          for(int i=0;i<RInum;i++){
+	    if(gate_RI[i]){
+	      hPpac0XRF0_RI[i]->Fill(PpacX[0],fRFcal[0]);
+	      hPpac0XRF1_RI[i]->Fill(PpacX[0],fRFcal[1]);
+              hPpac1XRF0_RI[i]->Fill(PpacX[1],fRFcal[0]);
+              hPpac1XRF1_RI[i]->Fill(PpacX[1],fRFcal[1]);
+	    }
+	  }
+	  
+	  if (gate_RI[0]) {
 	    hPpacToF_30s->Fill(Tof);
-	      hPpac0XRF0_30s->Fill(PpacX[0],fRFcal[0]);
 	      if (!SsdOR) hPpac0XRF0_30s_ds->Fill(PpacX[0],fRFcal[0]);
-              hPpac1XRF0_30s->Fill(PpacX[1],fRFcal[0]);
-	      hPpac0XRF1_30s->Fill(PpacX[0],fRFcal[1]);
-              hPpac1XRF1_30s->Fill(PpacX[1],fRFcal[1]);
 	      //hTargetXY_30s->Fill(TargetX,TargetY); // PPACa center to window
 	      if (WindowCut(fTargetX->Eval(452.),fTargetY->Eval(452.)))  hTargetXY_30s->Fill(TargetX,TargetY); // PPACa center to window
 	      //if (WindowCut(TargetX,TargetY))  hTargetXYcut_30s->Fill(TargetX,TargetY); // PPACa center to window
 	  }
-          if (gate_29p) {
+          if (gate_RI[1]) {
 	    hPpacToF_29p->Fill(Tof);
             //if ((fSiTcal[0]-tof[0])>295.5 && (fSiTcal[0]-tof[0])<303) { // 29P careful, can crash production runs, used for energyloss
             //if ((fSiTcal[0]-tof[0])>290 && (fSiTcal[0]-tof[0])<295.5) { // 30S careful, can crash production runs, used for energyloss
-	      hPpac0XRF0_29p->Fill(PpacX[0],fRFcal[0]);
-              hPpac1XRF0_29p->Fill(PpacX[1],fRFcal[0]);
-	      hPpac0XRF1_29p->Fill(PpacX[0],fRFcal[1]);
-              hPpac1XRF1_29p->Fill(PpacX[1],fRFcal[1]);
 	    //}
 	      //hTargetXY_29p->Fill(TargetX,TargetY); // PPACa center to window
 	      if (WindowCut(fTargetX->Eval(452.),fTargetY->Eval(452.)))  hTargetXY_29p->Fill(TargetX,TargetY); // PPACa center to window
@@ -435,19 +412,15 @@ void Analyzer::Loop(Int_t run,
 	      //hTargetXY_29p->Fill(fTargetX->Eval(654.4),fTargetY->Eval(654.4));
 	      //hTargetXY_29p->Fill(fTargetX->Eval(452),fTargetY->Eval(452));
 	  }
-	  if (gate_17f){
-	      hPpac0XRF0_17f->Fill(PpacX[0],fRFcal[0]);
-              hPpac0XRF1_17f->Fill(PpacX[0],fRFcal[1]);
-	  }
-	  if (gate_30s){
+	  if (gate_RI[0]){
 	        hPpac0XRF1cut->Fill(PpacX[0],fRFcal[1]);
 	        hPpac1XRF1cut->Fill(PpacX[1],fRFcal[1]);
 	  }
 	  //if (PpacIsHit[0] && PpacIsHit[1]) hTargetXY->Fill(fTargetX->Eval(654.4),fTargetY->Eval(654.4));
 	  //if (PpacIsHit[0] && PpacIsHit[1]) {
-	  //if (PpacIsHit[0] && PpacIsHit[1] && gate_30s) {
+	  //if (PpacIsHit[0] && PpacIsHit[1] && gate_RI[0]) {
 	  if(0){
-	  //if (PpacIsHit[0] && PpacIsHit[1] && ribeam_ssd && gate_30s) {
+	  //if (PpacIsHit[0] && PpacIsHit[1] && ribeam_ssd && gate_RI[0]) {
 	    hTargetXY->Fill(TargetX,TargetY);
 	    //if (WindowCut(TargetX,TargetY))  hTargetXYcut->Fill(TargetX,TargetY); // PPACa center to window
 
@@ -497,8 +470,8 @@ void Analyzer::Loop(Int_t run,
               if (fSiE[i][0] > 0 ){ // don't fill the histogram with junk
                 fSiEcal[i][0]=ssd_padE_calib->CalibMeV(i,fSiE[i][0]);
                 //pad_ch[i]->Fill(fSiE[i][0]);
-                // BUG gate_30s is false up to here!!
-                if (gate_30s) { // this will only do something useful if ppac_detail == 1
+                // BUG gate_RI[0] is false up to here!!
+                if (gate_RI[0]) { // this will only do something useful if ppac_detail == 1
                    pad_ch_gated[i]->Fill(fSiE[i][0]);
                 }
                 hSiPadEcal->Fill(i,fSiEcal[i][0]);	
@@ -561,7 +534,7 @@ void Analyzer::Loop(Int_t run,
           for(UShort_t i=0;i<12;i++){
             fSiEmax[i]=0.;
             for (UShort_t j=1; j<9; j++) {
-              //if (SsdOR && gate_30s)
+              //if (SsdOR && gate_RI[0])
 	      fSiEcal[i][j]=ssd_strip_calib->CalibMeV(i*8+j,fSiE[i][j]);
               if (fSiE[i][j]>fSiEmax[i] && fSiE[i][j]<4000.) {//find maximum strip
               //if (fSiEcal[i][j]>fSiEmax[i] && fSiE[i][j]<4000.) {//find maximum strip
@@ -576,7 +549,7 @@ void Analyzer::Loop(Int_t run,
               //if ( fSiE[i][j] > 0 && fSiE[i][j] < 4097){ // just for high and low pedestals (high part is too tight)
               //if ( (SiIsHit[i]) && (fSiE[i][j] > -100) ){ // just for high and low pedestals (high part is too tight)
               //if ( (fSiE[i][j] > -100 && !SsdOR) ){
-	      //if ( (fSiE[i][j] > -100) && fSiE[i][j]<4000 && gate_29p && SsdOR ){
+	      //if ( (fSiE[i][j] > -100) && fSiE[i][j]<4000 && gate_RI[1] && SsdOR ){
               if ( (fSiE[i][j] > -100 ) ){
                 strip_cal_ch[i*8+j]->Fill(fSiEcal[i][j]);
               }
@@ -650,7 +623,7 @@ void Analyzer::Loop(Int_t run,
 	    if (PpacIsHit[1] ){
               hPpac1XRF0ds->Fill(PpacX[1],fRFcal[0]);
 	    }
-	    if (gate_30s){
+	    if (gate_RI[0]){
 	    // can fill here
 	    }
 	  }
@@ -661,7 +634,7 @@ void Analyzer::Loop(Int_t run,
 	    if (PpacIsHit[1] ){
               hPpac1XRF1ds->Fill(PpacX[1],fRFcal[1]);
 	    }
-	    if (gate_30s){
+	    if (gate_RI[0]){
 	      //hPpac1XRF1cut->Fill(PpacX[1],fRF[1]);
 	    }
 	  }
@@ -672,11 +645,11 @@ void Analyzer::Loop(Int_t run,
       if (flag_detail && flag_ssd && flag_ppac) { // PPAC and SSD pad detailed analysis?
 	for(UShort_t i=0;i<18;i++){
 	    if (SiIsHit[i]){
-	      if (gate_30s)  {
+	      if (gate_RI[0])  {
 	        //hPpac0TpadT_30s_ch[i]->Fill(fSiTcal[i]-tof[0]);
 	        hPpac1TpadT_30s_ch[i]->Fill(fSiTcal[i]-tof[1]);
               }
-	      if (gate_29p) {
+	      if (gate_RI[1]) {
 	        //hPpac0TpadT_29p_ch[i]->Fill(fSiTcal[i]-tof[0]);
 	        hPpac1TpadT_29p_ch[i]->Fill(fSiTcal[i]-tof[1]);
               }
@@ -686,41 +659,41 @@ void Analyzer::Loop(Int_t run,
       if (flag_detail && flag_ssd && flag_strip && flag_ppac) { // PPAC and SSD strip detailed analysis?
         for (UShort_t i=0;i<1;i++){
             //if ((fSiTcal[0]-tof[0])>296 && (fSiTcal[0]-tof[0])<300.5 && fSiEStripmax[i]>2000) { // carful, can crash production runs, used for energyloss
-            //if (gate_29p) {
-            //if (gate_29p && fSiEStripmax[i]>2000) {
+            //if (gate_RI[1]) {
+            //if (gate_RI[1] && fSiEStripmax[i]>2000) {
 //	    if (PpacIsHit[0] && PpacIsHit[1]){
 	    if (WindowCut (fTargetX->Eval(452.),fTargetY->Eval(452.))&& PpacIsHit[0] && PpacIsHit[1]){
 	        if (fSiE[0][7]>1000) hPpac0TpadT_29p_ch[i]->Fill(tof[0]);
 	        //if (fSiE[0][7]>1000) hPpac0TpadT_29p_ch[i]->Fill(fSiTcal[i]-tof[0]);
 	       strip_ch_gated29p[i*8+fSiEStripmax_ch[i]]->Fill(fSiEStripmax[i]);
-	       if (PpacIsHit[0] && PpacIsHit[1] && fSiE[0][7]>1000 && gate_29p && fSiE[0][8]<1000) (hTargetXY_29p->Fill(TargetX,TargetY)); // PPACa center to window
-	       //if (gate_29p && fSiE[0][7]>1000 && fSiEStripmax_ch[i]==7) (hTargetXY_29p->Fill(TargetX,TargetY)); // PPACa center to window
+	       if (PpacIsHit[0] && PpacIsHit[1] && fSiE[0][7]>1000 && gate_RI[1] && fSiE[0][8]<1000) (hTargetXY_29p->Fill(TargetX,TargetY)); // PPACa center to window
+	       //if (gate_RI[1] && fSiE[0][7]>1000 && fSiEStripmax_ch[i]==7) (hTargetXY_29p->Fill(TargetX,TargetY)); // PPACa center to window
 	      //if (WindowCut(fTargetX->Eval(452.),fTargetY->Eval(452.)))  hTargetXYcut->Fill(TargetX,TargetY); // PPACa center to window
-	      //if (gate_29p && fSiE[0][7]>1000 && fSiEStripmax_ch[i]==7 && WindowCut(fTargetX->Eval(452.),fTargetY->Eval(452.)))  hTargetXYcut->Fill(TargetX,TargetY); // PPACa center to window
-	      if (gate_29p && fSiE[0][8]>1000 && fSiE[0][7]<1000)  hTargetXYcut->Fill(TargetX,TargetY); // PPACa center to window
+	      //if (gate_RI[1] && fSiE[0][7]>1000 && fSiEStripmax_ch[i]==7 && WindowCut(fTargetX->Eval(452.),fTargetY->Eval(452.)))  hTargetXYcut->Fill(TargetX,TargetY); // PPACa center to window
+	      if (gate_RI[1] && fSiE[0][8]>1000 && fSiE[0][7]<1000)  hTargetXYcut->Fill(TargetX,TargetY); // PPACa center to window
             //}
-            //if (gate_30s) {
-            //if (gate_30s && fSiEStripmax[i]>2000) {
-            //if ((fSiTcal[0]-tof[0])>292 && (fSiTcal[0]-tof[0])<296 && fSiEStripmax[i]>2000 && gate_30s) {
+            //if (gate_RI[0]) {
+            //if (gate_RI[0] && fSiEStripmax[i]>2000) {
+            //if ((fSiTcal[0]-tof[0])>292 && (fSiTcal[0]-tof[0])<296 && fSiEStripmax[i]>2000 && gate_RI[0]) {
 	       strip_ch_gated30s[i*8+fSiEStripmax_ch[i]]->Fill(fSiEStripmax[i]);
 	        if (fSiE[0][8]>1000)hPpac0TpadT_30s_ch[i]->Fill(tof[0]);
 	        //if (fSiE[0][8]>1000)hPpac0TpadT_30s_ch[i]->Fill(fSiTcal[i]-tof[0]);
 	      
-	        if (fSiE[0][8]>1000 && fSiE[0][7]<1000 && PpacIsHit[0] && PpacIsHit[1] && gate_30s) hTargetXY_30s->Fill(TargetX,TargetY); // PPACa center to window
-	        //if (gate_30s && fSiE[0][8]>1000 && fSiEStripmax_ch[i]==8) hTargetXY_30s->Fill(TargetX,TargetY); // PPACa center to window
-	        //if (gate_30s && fSiE[0][8]>1000 && fSiEStripmax_ch[i]==8 && WindowCut(fTargetX->Eval(452.),fTargetY->Eval(452.))) hTargetXYcut_30s->Fill(TargetX,TargetY); // PPACa center to window
-	        if (gate_30s && fSiE[0][8]<1000 && fSiE[0][7]>1000 && fSiEStripmax_ch[i]==8) hTargetXYcut_30s->Fill(TargetX,TargetY); // PPACa center to window
+	        if (fSiE[0][8]>1000 && fSiE[0][7]<1000 && PpacIsHit[0] && PpacIsHit[1] && gate_RI[0]) hTargetXY_30s->Fill(TargetX,TargetY); // PPACa center to window
+	        //if (gate_RI[0] && fSiE[0][8]>1000 && fSiEStripmax_ch[i]==8) hTargetXY_30s->Fill(TargetX,TargetY); // PPACa center to window
+	        //if (gate_RI[0] && fSiE[0][8]>1000 && fSiEStripmax_ch[i]==8 && WindowCut(fTargetX->Eval(452.),fTargetY->Eval(452.))) hTargetXYcut_30s->Fill(TargetX,TargetY); // PPACa center to window
+	        if (gate_RI[0] && fSiE[0][8]<1000 && fSiE[0][7]>1000 && fSiEStripmax_ch[i]==8) hTargetXYcut_30s->Fill(TargetX,TargetY); // PPACa center to window
 	    }
          /* 
 	  for (UShort_t j=1;j<9;j++){
-            if (gate_29p) {
+            if (gate_RI[1]) {
 	       strip_ch_gated29p[i*8+j]->Fill(fSiE[i][j]);
             }
-            if (gate_30s) {
+            if (gate_RI[0]) {
                if (j==8 && fSiE[i][j]>2000 && fSiE[i][7] > 2000) cout << "Multihit!"  << endl;
                strip_ch_gated30s[i*8+j]->Fill(fSiE[i][j]);
             }
-            if (gate_17f) {
+            if (gate_RI[2]) {
                strip_ch_gated17f[i*8+j]->Fill(fSiE[i][j]);
             }
 	  } // end for: j
@@ -791,7 +764,7 @@ void Analyzer::Loop(Int_t run,
 	    if ((fadc->fSample[0]!=0.) && (fadc->fSample[1]!=0.) && (fadc->fSample[2]!=0.) && (fadc->fSample[3]!=0.) && (fadc->fSample[4]!=0.)){
 	      //if (flag_detail && flag_ppac) { // high gain left check
 	      //if (flag_detail && SiIsHit[2]) { // high gain left check
-	      if (flag_detail && flag_ppac && gate_30s) { // beam check
+	      if (flag_detail && flag_ppac && gate_RI[0]) { // beam check
 	        for (Int_t j=0; j<fadc->fNSample; j++) {
                   hTpcPulse[pulsetrack]->Fill(fadc->fClock[j], fadc->fSample[j]);
 		  specialtrack=true;
@@ -1077,8 +1050,8 @@ void Analyzer::Loop(Int_t run,
 		      // calibrated
 		      //dEpadB[pad[i]][TracksB[pad[i]]] = (XpadBcalib[0]+XpadBcalib[1]); // integrated
 		      //raw
-		      //dEpadB[pad[i]][TracksB[pad[i]]] = (fSampleInt[i][k][l]+fSampleInt[j][m][n]); // integrated
-		      dEpadB[pad[i]][TracksB[pad[i]]] = (fSampleMax[i][k][l]+fSampleMax[j][m][n]); // max
+		      dEpadB[pad[i]][TracksB[pad[i]]] = (fSampleInt[i][k][l]+fSampleInt[j][m][n]); // integrated
+		      //dEpadB[pad[i]][TracksB[pad[i]]] = (fSampleMax[i][k][l]+fSampleMax[j][m][n]); // max
                       TracksB[pad[i]]++; // increase the number of tracks for that pad
 		      padsHitB[TracksB[pad[i]]]++;
                     } // end for n: right side hit number
@@ -1229,8 +1202,8 @@ void Analyzer::Loop(Int_t run,
 	      shift=paddistance*TMath::Tan(theta);
               //shift=0.;
 	     TargetX=TargetY=-999.;
-	     if (PpacIsHit[0] && PpacIsHit[1] && !SsdOR  && WindowCut(fTargetX->Eval(452.),fTargetY->Eval(452.)) && gate_30s && XpadB[i][j]>-999. && dEpadB[i][j]>50){
-	     //if (PpacIsHit[0] && PpacIsHit[1] && !SsdOR  && gate_29p){
+	     if (PpacIsHit[0] && PpacIsHit[1] && !SsdOR  && WindowCut(fTargetX->Eval(452.),fTargetY->Eval(452.)) && gate_RI[0] && XpadB[i][j]>-999. && dEpadB[i][j]>50){
+	     //if (PpacIsHit[0] && PpacIsHit[1] && !SsdOR  && gate_RI[1]){
                          //checking TargetX works as expected
 			 //TargetX=PpacX[0]+(((452+83+(i*padsize)+(padsize/2))/PpacSepZ)*(PpacX[1]-PpacX[0]));
 			 // testing retarded stuff: 23 Apr 2013 16:28:43 
@@ -1253,7 +1226,7 @@ void Analyzer::Loop(Int_t run,
 			 
              }
 	     TargetX=TargetY=-999.;
-	     if (PpacIsHit[0] && PpacIsHit[1] && !SsdOR  && WindowCut(fTargetX->Eval(452.),fTargetY->Eval(452.)) && gate_29p && XpadB[i][j]>-999. && dEpadB[i][j]>50){
+	     if (PpacIsHit[0] && PpacIsHit[1] && !SsdOR  && WindowCut(fTargetX->Eval(452.),fTargetY->Eval(452.)) && gate_RI[1] && XpadB[i][j]>-999. && dEpadB[i][j]>50){
 			 TargetX=fTargetX->Eval((452.+83.+(i*padsize)+(padsize/2)));
                          TargetY=fTargetY->Eval((452.+83.+(i*padsize)+padsize/2)); // PPACa center to window, inactive region, plus pad
 			 hPadXBgeo_29p->Fill(i,TargetX); // proper residual
@@ -1261,7 +1234,7 @@ void Analyzer::Loop(Int_t run,
 	     
 	     }
 	     TargetX=TargetY=-999.;
-	     if (PpacIsHit[0] && PpacIsHit[1] && !SsdOR  && WindowCut(fTargetX->Eval(452.),fTargetY->Eval(452.)) && (gate_29p||gate_30s)  && XpadB[i][j]>-999. && dEpadB[i][j]>50){
+	     if (PpacIsHit[0] && PpacIsHit[1] && !SsdOR  && WindowCut(fTargetX->Eval(452.),fTargetY->Eval(452.)) && (gate_RI[1]||gate_RI[0])  && XpadB[i][j]>-999. && dEpadB[i][j]>50){
 			 TargetX=fTargetX->Eval((452.+83.+(i*padsize)+(padsize/2)));
                          TargetY=fTargetY->Eval((452.+83.+(i*padsize)+padsize/2)); // PPACa center to window, inactive region, plus pad
 			 hPadXBgeo->Fill(i,((XpadB[i][j]+shift)-TargetX)); // proper residual
@@ -1269,38 +1242,37 @@ void Analyzer::Loop(Int_t run,
 	     
 	     }
 	     //hPadXB->Fill(i,XpadB[i][j]);
-	     if (!SsdOR) {
-
+	     if (flag_ppac){
+	       if (dEpadB[i][j]>10){
+	          for (int k=0;k<RInum;k++){
+                    if (gate_RI[k]){
+	              hBraggB_RI[k]->Fill(i,dEpadB[i][j]);
+		      if (!SsdOR) {hBraggB_ds_RI[k]->Fill(i,dEpadB[i][j]);}
+	              if (SsdOR) {hBraggB_ssd_RI[k]->Fill(i,dEpadB[i][j]);}
+	            }
+	          }
+	       } 
 	     }
-	     if (SsdOR) hPadB_3D->Fill(XpadB[i][j],YpadB[i][j],i);
+	     if (SsdOR) hPadB_3D->Fill(XpadB[i][j],YpadB[i][j],i); //goatface 14 Jun 2013 01:37:25 
 	       //if (ssd_detail && !SsdOR) { //downscale beam condition
-	       //  hBraggB_ds_ch[i]->Fill(dEpadB[i][j]);
 	       //}
 	       //if (ssd_detail && SsdOR) { // ssd-or condition
-	       //  hBraggB_ssd_ch[i]->Fill(dEpadB[i][j]);
 	       //}
-             if (flag_ppac && gate_30s) {
+             if (flag_ppac && gate_RI[0]) {
 	       
 	       //goatface 29 Oct 2012 17:52:36 
 	       
 	       if (dEpadB[i][j]>10){
-	       //if (PpacIsHit[0] && PpacIsHit[1] && !SsdOR  && WindowCut(fTargetX->Eval(452.),fTargetY->Eval(452.)) && gate_30s && XpadB[i][j]>-999. && dEpadB[i][j]>50){
-	         hBraggB_30s->Fill(i,dEpadB[i][j]);
-	         hBraggB_3D->Fill(i,j,dEpadB[i][j]);
+	       //if (PpacIsHit[0] && PpacIsHit[1] && !SsdOR  && WindowCut(fTargetX->Eval(452.),fTargetY->Eval(452.)) && gate_RI[0] && XpadB[i][j]>-999. && dEpadB[i][j]>50){
+	         hBraggB_3D->Fill(i,j,dEpadB[i][j]);  //goatface 14 Jun 2013 01:37:50 
 	         //hPadXB_30s->Fill(i,XpadB[i][j]);
 	         if (!SsdOR) { //downscale beam condition
-	           hBraggB_30s_ds_ch[i]->Fill(dEpadB[i][j]);
-	           hBraggB_30s_ds->Fill(i,dEpadB[i][j]);
-	           hBraggB_ds_ch[i]->Fill(dEpadB[i][j]);
-	           hBraggB_3D_ds->Fill(i,j,dEpadB[i][j]);
+	           hBraggB_3D_ds->Fill(i,j,dEpadB[i][j]); // goatface 14 Jun 2013 01:38:28 
 	         } // end if : !SsdOR
 	         // PUT PHYSICS HERE
 	         if ( SsdOR) { // ssd-or condition
-	           hBraggB_30s_ssd_ch[i]->Fill(dEpadB[i][j]);
-	           hBraggB_30s_ssd->Fill(i,dEpadB[i][j]);
 	           hPadYB_30s->Fill(i,YpadB[i][j]);
-	           hBraggB_ssd_ch[i]->Fill(dEpadB[i][j]);
-	           hBraggB_3D_ssd->Fill(i,j,dEpadB[i][j]);
+	           hBraggB_3D_ssd->Fill(i,j,dEpadB[i][j]); //goatface 14 Jun 2013 01:36:36 
 	           
 	           UShort_t k=i-1; // channel to check against
 	           if (k==31) k--; // these channels are always bad
@@ -1315,8 +1287,7 @@ void Analyzer::Loop(Int_t run,
 	           if (i>15) { // below this is junk, also avoids seg faults for i<0
 	             Float_t deltaE=(dEpadB[i][j]-dEpadB[k][j])/i; 
 	             //if (1) { // view all
-	             if (deltaE>6) { // condition of reaction point
-	               hBraggB_rp->Fill(i,deltaE);
+	             if (deltaE>6) {
 	               
 	             //work from here!
 	             //fSiIsHit-TpadC[i][j]
@@ -1330,35 +1301,10 @@ void Analyzer::Loop(Int_t run,
 	         if (!SsdOR) { // d/s condition
 	         } // end if : !SsdOR
 	       } // end if dEpadB>10
-             } // end if : gate_30s
-	     if (flag_ppac && gate_29p) {
-	       if (dEpadB[i][j]>10){
-	     //if (PpacIsHit[0] && PpacIsHit[1] && !SsdOR  && WindowCut(fTargetX->Eval(452.),fTargetY->Eval(452.))){
-	     //can check window cut
-	         hBraggB_29p->Fill(i,dEpadB[i][j]);
-	         if (!SsdOR) { //downscale beam condition
-	           hBraggB_29p_ds->Fill(i,dEpadB[i][j]);
-	           hBraggB_29p_ds_ch[i]->Fill(dEpadB[i][j]);
-                 }	
-	         if ( SsdOR) { // ssd-or condition
-	           hBraggB_29p_ssd->Fill(i,dEpadB[i][j]);
-	           hBraggB_29p_ssd_ch[i]->Fill(dEpadB[i][j]);
-	         }
-	       } // end if: dEpadB > 10
-	     } // end if: gate_29p
-             if (gate_17f){
-	       if (dEpadB[i][j]>10){
-	         hBraggB_17f->Fill(i,dEpadB[i][j]);
-                 if (SsdOR) {
-	           hBraggB_17f_ssd_ch[i]->Fill(dEpadB[i][j]);
-	         }
-	         else{ // downscale
-	           hBraggB_17f_ds_ch[i]->Fill(dEpadB[i][j]);
-
-	         }
-	       } // end if: dEpadB > 10
-	     }
-            } // end for j: track loop
+             } // end if : gate_RI[0]
+            
+	    
+	    } // end for j: track loop
 	  } // end for i : pad number loop
           
 	 
@@ -1376,7 +1322,7 @@ void Analyzer::Loop(Int_t run,
 	          hPadZR[0]->Fill(i,ZpadR[i][j]);
 	          //if (SiIsHit[3] && ssd_mult==1){
 	          /*
-		  if (SiIsHit[2] && pulsetrack3a<100 && pulsetrack3a>0 && padsHitL[1]>1 && gate_30s){
+		  if (SiIsHit[2] && pulsetrack3a<100 && pulsetrack3a>0 && padsHitL[1]>1 && gate_RI[0]){
 	            hPadZL[pulsetrack3a]->Fill(i,ZpadL[i][j]);
                   } 
 		  */
@@ -1398,15 +1344,15 @@ void Analyzer::Loop(Int_t run,
 	          hPadYL->Fill(i,YpadL[i][j]);
 	          hPadZL[0]->Fill(i,ZpadL[i][j]);
 	          //if (SiIsHit[3] && ssd_mult==1){
-	          if (SiIsHit[2] && pulsetrack3a<100 && pulsetrack3a>0 && padsHitL[1]>1 && gate_30s){
+	          if (SiIsHit[2] && pulsetrack3a<100 && pulsetrack3a>0 && padsHitL[1]>1 && gate_RI[0]){
 	            hPadZL[pulsetrack3a]->Fill(i,ZpadL[i][j]);
                   }   
                 }
 	      }
 	    }	
 	  }
-	  if (SiIsHit[2] && padsHitL[1]>1 && gate_30s) pulsetrack3a++;
-	  if (SiIsHit[2] && gate_30s) ssd_evts[2]++;
+	  if (SiIsHit[2] && padsHitL[1]>1 && gate_RI[0]) pulsetrack3a++;
+	  if (SiIsHit[2] && gate_RI[0]) ssd_evts[2]++;
 	 //center
 	  for (int i=0;i<20;i++)
 	    dEpadCTotal[i]=0; // 
@@ -1440,7 +1386,7 @@ void Analyzer::Loop(Int_t run,
 	        dEpadCTotal[j] = dEpadCTotal[j] + dEpadC[i][j];
 	        
 		if ( padsHitC[1]>1  ) hBraggC->Fill(i,dEpadC[i][j]);
-	        //if (gate_17f && SiIsHit[1] && padsHitC[1]>1  ) hBraggC->Fill(i,dEpadC[i][j]);
+	        //if (gate_RI[2] && SiIsHit[1] && padsHitC[1]>1  ) hBraggC->Fill(i,dEpadC[i][j]);
 	        if (padsHitC[1]>1){
 	        //if (SiIsHit[0] && ssd_mult==1){
 	          //if (1){
@@ -1474,14 +1420,14 @@ void Analyzer::Loop(Int_t run,
 		    hPadXC[k]->Fill(i,XpadC[i][j]);
                   }*/
                 }
-		if (SiIsHit[0] && pulsetrack1a<100 && padsHitC[1]>1 && //gate_30s &&
+		if (SiIsHit[0] && pulsetrack1a<100 && padsHitC[1]>1 && //gate_RI[0] &&
 	         fSiE[0][8]>0 ) {
 		//(fSiE[0][1]>0 || fSiE[0][2]>0 || fSiE[0][3]>0 || fSiE[0][4]>0 || 
 		 //fSiE[0][5]>0 || fSiE[0][6]>0 || fSiE[0][7]>0 || fSiE[0][8]>0 )){
 		//if (SiIsHit[0] && pulsetrack2<100 && pulsetrack2>0 && padsHitC[1]>1){
 		  hPadXC1a[pulsetrack1a]->Fill(i,XpadC[i][j]);
 		}
-		if (SiIsHit[1] && pulsetrack2a<100 && padsHitC[1]>1 && gate_17f ){//&&
+		if (SiIsHit[1] && pulsetrack2a<100 && padsHitC[1]>1 && gate_RI[2] ){//&&
 	         //fSiE[1][3]>0 ) {
 		 //(fSiE[1][1]>0 || fSiE[1][2]>0 || fSiE[1][3]>0 || fSiE[1][4]>0 || 
 		 //fSiE[1][5]>0 || fSiE[1][6]>0 || fSiE[1][7]>0 || fSiE[1][8]>0 )){
@@ -1534,20 +1480,20 @@ void Analyzer::Loop(Int_t run,
 	  }
 
 
-	  if (SiIsHit[0] &&  padsHitC[1]>1 && //gate_30s && 
+	  if (SiIsHit[0] &&  padsHitC[1]>1 && //gate_RI[0] && 
 	  fSiE[0][8]>0 ) {
          //  (fSiE[0][1]>0 || fSiE[0][2]>0 || fSiE[0][3]>0 || fSiE[0][4]>0 || 
          //  fSiE[0][5]>0 || fSiE[0][6]>0 || fSiE[0][7]>0 || fSiE[0][8]>0 )){
 	    pulsetrack1a++;
 	  }
-	  if (SiIsHit[1] &&  padsHitC[1]>1 && gate_17f ){//&& 
+	  if (SiIsHit[1] &&  padsHitC[1]>1 && gate_RI[2] ){//&& 
 //	  fSiE[1][3]>0 ) {
           // (fSiE[1][1]>0 || fSiE[1][2]>0 || fSiE[1][3]>0 || fSiE[1][4]>0 || 
           // fSiE[1][5]>0 || fSiE[1][6]>0 || fSiE[1][7]>0 || fSiE[1][8]>0 )){
 	    pulsetrack2a++;
 	  }
-	  if (SiIsHit[0] && gate_30s ) ssd_evts[0]++;
-	  if (SiIsHit[1] && gate_30s ) ssd_evts[1]++;
+	  if (SiIsHit[0] && gate_RI[0] ) ssd_evts[0]++;
+	  if (SiIsHit[1] && gate_RI[0] ) ssd_evts[1]++;
           
 	  /*
 	  for (UShort_t i=0;i<3;i++){
@@ -1604,7 +1550,7 @@ void Analyzer::Loop(Int_t run,
 	         }
 	     }
 	   }
-	   if (gate_30s && SsdOR){
+	   if (gate_RI[0] && SsdOR){
 	     if (padsHitB[1]>0 ) hMultB_30s->Fill(padsHitB[1]);
 	     
 	   }
@@ -1613,13 +1559,13 @@ void Analyzer::Loop(Int_t run,
 	     //if (!(dEpadC[5][1]>5) && !(padsHitC[1]==1)){
 	       //for (int i=0;i<8;i++){
 	       
-	         //if (padsHitC[1]>0 &&  SiIsHit[0] && gate_30s) hMultC_30s_1a->Fill(padsHitC[1]);
+	         //if (padsHitC[1]>0 &&  SiIsHit[0] && gate_RI[0]) hMultC_30s_1a->Fill(padsHitC[1]);
 	         if (padsHitC[1]>0 && SiIsHit[0] && fSiE[0][4]>190) hMultC_30s_1a->Fill(padsHitC[1]);
-	         if (padsHitC[1]>0 && SiIsHit[1] && gate_30s) hMultC_30s_2a->Fill(padsHitC[1]);
+	         if (padsHitC[1]>0 && SiIsHit[1] && gate_RI[0]) hMultC_30s_2a->Fill(padsHitC[1]);
 	       //}
 	     }
 	     if (dEpadLTotal[0]>50.){
-	       if (padsHitL[1]>0 && SiIsHit[2] && gate_30s) hMultL_30s_3a->Fill(padsHitL[1]);
+	       if (padsHitL[1]>0 && SiIsHit[2] && gate_RI[0]) hMultL_30s_3a->Fill(padsHitL[1]);
 	     }
 	   }
 	 }

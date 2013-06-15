@@ -252,6 +252,28 @@ UShort_t inline Analyzer::SetPpacSepZ()
   //static const UShort_t PpacSepZ = 156; // mm 
 }
 
+bool inline Analyzer::CheckGate(int RI, Double_t PPACaX, Double_t PPACbX, Double_t RF0, Double_t RF1)
+{
+  bool gate=false;
+  // 30S
+  // 30S done again w/ new PPAC calib 20 Sep 2011 17:22:52 
+  // 30S redone with RFcal 16 Jan 2012 17:32:44 
+  if ( RI==0 && (  ((RF0>=20) && (RF0<=30)) || ((RF1>=53)&&(RF1<=60)) || (RF1<=3) ) && ((PPACaX>=-9 && PPACaX<=8) && (PPACbX>=-10 && PPACbX<=12)) )
+    {gate=true;}
+  //29P
+  // PPAC X was redone 20 Sep 2011 17:23:07 
+  // 29P redone with RFcal 16 Jan 2012 17:35:10 
+  if ( RI==1 && ( ((RF0>=6) && (RF0<=15)) || ((RF1>=39)&&(RF1<=48)) ) && ((PPACaX>=-4 && PPACaX<=9) && (PPACbX>=-5 && PPACbX<=14)) )
+    {gate=true;}
+  // Mystery Ion...17F?
+  // mystery ion...it should be some light ion at 0deg SSD in coincidence with 30S or 29P...check run 1027
+  // mystery ion RFcal 16 Jan 2012 17:42:46
+  // PPAC X redone 16 Jan 2012 17:45:43 
+  if ( RI==2 && (((RF0>=34) && (RF0<=43)) || ((RF1>=6)&&(RF1<=15))) && ((PPACaX>=-9 && PPACaX<=8) && (PPACbX>=-11 && PPACbX<=2)) )
+    {gate=true;}
+  return(gate);
+}
+
 // change this to pass by address
 Bool_t inline Analyzer::WindowCut(Double_t x, Double_t y)
 {
